@@ -1,11 +1,6 @@
 import { useState } from "react";
 import {
-  Search,
   BookMarked,
-  TrendingUp,
-  Clock,
-  ArrowUpDown,
-  Filter,
   Heart,
   Share2,
   BookmarkPlus,
@@ -25,6 +20,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const QuotesMarketplace = () => {
+  const [credits, setCredits] = useState(10); // Initial user credits
+  const [purchasedQuotes, setPurchasedQuotes] = useState([]); // IDs of purchased premium quotes
   const [quotes, setQuotes] = useState([
     {
       id: 1,
@@ -88,37 +85,74 @@ const QuotesMarketplace = () => {
     setNewQuote({ quote: "", author: "", category: "", isPremium: false });
   };
 
-  const QuoteCard = ({ quote }) => (
-    <Card className="w-full hover:shadow-lg transition-shadow">
-      <CardHeader className="space-y-1">
-        <div className="flex justify-between items-start">
-          <Badge variant={quote.isPremium ? "default" : "secondary"} className="mb-2">
-            {quote.isPremium ? "Premium" : "Free"}
-          </Badge>
-          <Badge variant="outline">{quote.category}</Badge>
-        </div>
-        <CardTitle className="text-xl font-serif italic">"{quote.quote}"</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <p className="text-sm text-muted-foreground">- {quote.author}</p>
-      </CardContent>
-      <CardFooter className="justify-between border-t pt-4">
-        <div className="flex gap-4">
-          <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-600">
-            <Heart className="h-4 w-4 mr-1" />
-            {quote.likes.toLocaleString()}
-          </Button>
-          <Button variant="ghost" size="sm">
-            <BookmarkPlus className="h-4 w-4 mr-1" />
-            {quote.saves.toLocaleString()}
-          </Button>
-          <Button variant="ghost" size="sm">
-            <Share2 className="h-4 w-4" />
-          </Button>
-        </div>
-      </CardFooter>
-    </Card>
-  );
+  // Purchase a premium quote
+  const handlePurchase = (quoteId) => {
+    if (credits >= 5) {
+      setCredits(credits - 5);
+      setPurchasedQuotes((prev) => [...prev, quoteId]);
+      alert("Quote purchased successfully!");
+    } else {
+      alert("Not enough credits to purchase this quote.");
+    }
+  };
+
+  // Earn credits by liking or saving a quote
+  const handleEarnCredits = (amount) => {
+    setCredits((prevCredits) => prevCredits + amount);
+    alert(`You earned ${amount} credits!`);
+  };
+
+  const QuoteCard = ({ quote }) => {
+    const isPurchased = purchasedQuotes.includes(quote.id);
+
+    return (
+      <Card className="w-full hover:shadow-lg transition-shadow">
+        <CardHeader className="space-y-1">
+          <div className="flex justify-between items-start">
+            <Badge variant={quote.isPremium ? "default" : "secondary"} className="mb-2">
+              {quote.isPremium ? "Premium" : "Free"}
+            </Badge>
+            <Badge variant="outline">{quote.category}</Badge>
+          </div>
+          <CardTitle className="text-xl font-serif italic">
+            "{quote.quote}"
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">- {quote.author}</p>
+        </CardContent>
+        <CardFooter className="justify-between border-t pt-4">
+          <div className="flex gap-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-red-500 hover:text-red-600"
+              onClick={() => handleEarnCredits(1)}
+            >
+              <Heart className="h-4 w-4 mr-1" />
+              {quote.likes.toLocaleString()}
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleEarnCredits(2)}
+            >
+              <BookmarkPlus className="h-4 w-4 mr-1" />
+              {quote.saves.toLocaleString()}
+            </Button>
+            <Button variant="ghost" size="sm">
+              <Share2 className="h-4 w-4" />
+            </Button>
+          </div>
+          {quote.isPremium && !isPurchased && (
+            <Button variant="primary" onClick={() => handlePurchase(quote.id)}>
+              Purchase (5 credits)
+            </Button>
+          )}
+        </CardFooter>
+      </Card>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-secondary/20 p-6">
@@ -129,6 +163,15 @@ const QuotesMarketplace = () => {
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Discover and collect inspiring quotes from visionary minds around the world
           </p>
+          <div className="mt-2">
+            <Badge variant="default">Credits: {credits}</Badge>
+          </div>
+          <Button
+            className="mt-4"
+            onClick={() => handleEarnCredits(5)}
+          >
+            Get Free Credits (+5)
+          </Button>
         </div>
 
         {/* Add New Quote */}
